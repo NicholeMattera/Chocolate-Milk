@@ -26,28 +26,61 @@ package com.lepidusdevelopment.chocolatemilk;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import android.app.Application;
+
 import de.robv.android.xposed.IXposedHookLoadPackage;
+import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class ChocolateMilkPatch implements IXposedHookLoadPackage {
-	public static final String PACKAGE_NAME = ChocolateMilkPatch.class.getPackage().getName();
-	public static final String TAG = "ChocolateMilkPatch";
-	
+	private static final String PACKAGE_NAME = "com.samsung.mdl.radio";
+
 	@Override
-	public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
-		if (lpparam.packageName.equals("com.samsung.mdl.radio")) {
-			ClassLoader classLoader = lpparam.classLoader;
-			
-			XC_MethodReplacement deviceDetection = new XC_MethodReplacement() {
-				@Override
-				protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-					return true;
-				}
-		    };
-		    
-		    XposedHelpers.findAndHookMethod("com.samsung.mdl.radio.g", classLoader, "h", deviceDetection);
+	public void handleLoadPackage(LoadPackageParam param) throws Throwable {
+		if (param.packageName.equals(PACKAGE_NAME)) {
+			final ClassLoader classLoader = param.classLoader;
+            final XC_MethodReplacement deviceDetection = new XC_MethodReplacement() {
+                @Override
+                protected Object replaceHookedMethod(MethodHookParam hookParam) throws Throwable {
+                    return true;
+                }
+            };
+
+            XC_MethodHook onCreate = new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam hookParam) throws Throwable {
+                    int versionCode = ((Application) hookParam.thisObject).getPackageManager().
+                            getPackageInfo(PACKAGE_NAME, 0).versionCode;
+
+                    if (versionCode == 179553) {
+                        XposedHelpers.findAndHookMethod(
+                                "com.samsung.mdl.radio.g",
+                                classLoader,
+                                "g",
+                                deviceDetection
+                        );
+                    }
+                    else if (versionCode == 176956) {
+                        XposedHelpers.findAndHookMethod(
+                                "com.samsung.mdl.radio.g",
+                                classLoader,
+                                "h",
+                                deviceDetection
+                        );
+                    }
+
+                    super.beforeHookedMethod(hookParam);
+                }
+            };
+
+            XposedHelpers.findAndHookMethod(
+                    "com.samsung.mdl.radio.RadioApp",
+                    classLoader,
+                    "onCreate",
+                    onCreate
+            );
 		}
 	}
 }
