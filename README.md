@@ -2,7 +2,7 @@
 
 A module for enabling Milk music to run on any device. This module still requires you to sideload Milk music on to your device. This module also does not circumvent the country limitation as this is done via IP Address, to get this to work in other countries please connect to a VPN located inside the United States.
 
-#License
+##License
 
 Chocolate Milk is published under BSD 2-Clause License
 
